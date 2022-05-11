@@ -25,27 +25,28 @@ def filter_black(letter, amount, word_list):
 def filter_words(word, pattern, word_list):
     if len(word) != 5:
         print('word more than 5 letters')
-        return
+        return word_list
     if len(pattern) != 5:
         print('pattern more than 5 letters')
-        return
+        return word_list
     listlen = 0
     while listlen != len(word_list): # array.remove is buggy
         listlen = len(word_list)
         for position in range(5):
             if pattern[position] == 'g':
-                filter_green(word[position], position, word_list)
+                word_list = filter_green(word[position], position, word_list)
             elif pattern[position] == 'y':
-                filter_yellow(word[position], position, word_list)
+                word_list = filter_yellow(word[position], position, word_list)
             elif pattern[position] == 'b':
                 count = 1
                 for pos in range(5):
                     if word[pos] == word[position] and pattern[pos] in "gy":
                         count = count + 1
-                filter_black(word[position], count, word_list)
+                word_list = filter_black(word[position], count, word_list)
             else:
                 print('pattern character not g, y or b')
-                return
+                return word_list
+    return word_list
 
 def build_word_list():
     word_list = []
@@ -75,8 +76,7 @@ def find_most_likely_word(word_list, full_word_list):
     
     word = word_list[0]
     word_score = 0
-    while len(full_word_list) > 0:
-        test_word = full_word_list[0]
+    for test_word in full_word_list:
         score = 0
         for pos in range(number_of_letters):
             if test_word[pos] in dictionary[pos]:
@@ -88,8 +88,7 @@ def find_most_likely_word(word_list, full_word_list):
         if score > word_score:
             word = test_word
             word_score = score
-        full_word_list.remove(test_word)
-    print(word_score)
+    #print(word_score)
     return word
     
            
@@ -132,20 +131,20 @@ original_words = []
 def calculate_strategy_average():
     guess_count = 0
     word_count = 0
-    for word in build_word_list:
+    for word in build_word_list():
         word_list = build_word_list()
-        full_word_list = word_list.copy()
+        full_word_list = build_word_list()
         print("Actual Word : " + word)
         word_count = word_count + 1
         guesses = 0
         pattern = ''
         while pattern != 'ggggg':
-            word_to_test = find_most_likely_word()
+            word_to_test = find_most_likely_word(word_list, full_word_list)
+            print("Word to test : " + word_to_test)
             full_word_list.remove(word_to_test)
-            #print("Word to test : " + word_to_test)
             guesses = guesses + 1
             pattern = get_pattern(word_to_test, word)
-            filter_words(word_to_test, pattern)
+            word_list = filter_words(word_to_test, pattern, word_list)
             #print("Pattern : " + pattern)
         print("Guesses to get it " + str(guesses))
         guess_count = guess_count + guesses
@@ -159,7 +158,7 @@ def play_game():
     while True:
         best_word = find_most_likely_word(word_list, full_word_list)
         print("Best word choice : " + best_word)
-        word = input("Chosen Word : ")
+        word = input("Chosen Word (Blank for best choice) : ")
         if word == "exit":
             break
         elif word == "":
@@ -170,7 +169,7 @@ def play_game():
             print("given word not in word list")
             continue
         pattern = input("Pattern (gyb) : ")
-        filter_words(word, pattern)
+        word_list = filter_words(word, pattern)
         
 def find_first_word():
     word_list = build_word_list()
@@ -178,8 +177,8 @@ def find_first_word():
             
 
 
-#calculate_strategy_average()    
+calculate_strategy_average()    
 #play_game()
-find_first_word()
+#find_first_word()
     
 #print(words)
