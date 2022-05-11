@@ -1,3 +1,8 @@
+number_of_letters = 5
+words = []
+tried_words = []
+original_words = []
+
 def filter_green(letter, position):
     for word in words:
         if word[position] != letter:
@@ -125,8 +130,10 @@ def get_pattern(test_word, actual_word):
 def calculate_strategy_average():
     guess_count = 0
     word_count = 0
+    build_word_list()
+    original_words = words.copy()
     for word in original_words:
-    #for word in ["studs"]:
+    #for word in ["mimer"]:
         tried_words = []
         print("Actual Word : " + word)
         word_count = word_count + 1
@@ -136,33 +143,32 @@ def calculate_strategy_average():
         while pattern != 'ggggg':
             word_to_test = find_most_likely_word()
             tried_words.append(word_to_test)
-            print("Word to test : " + word_to_test)
+            #print("Word to test : " + word_to_test)
             guesses = guesses + 1
             pattern = get_pattern(word_to_test, word)
             filter_words(word_to_test, pattern)
-            print("Pattern : " + pattern)
+            #print("Pattern : " + pattern)
         print("Guesses to get it " + str(guesses))
         guess_count = guess_count + guesses
     print("Words : " + str(word_count))
     print("Guesses : " + str(guess_count))
     print("Average guesses : " + str(guess_count/word_count))
+    
+def play_game():
+    build_word_list()
+    original_words = words.copy()
+    while True:
+        print("Best word choice : " + find_most_likely_word())
+        word = input("Chosen Word : ")
+        if word == "exit":
+            break
+        tried_words.append(word)
+        pattern = input("Pattern (gyb) : ")
+        filter_words(word, pattern)
             
-number_of_letters = 5
-words = []
-build_word_list()
-original_words = words.copy()
-tried_words = []
 
-calculate_strategy_average()    
 
-while True:
-    break
-    print("Best word choice : " + find_most_likely_word())
-    word = input("Chosen Word : ")
-    if word == "exit":
-        break
-    tried_words.append(word)
-    pattern = input("Pattern (gyb) : ")
-    filter_words(word, pattern)
+#calculate_strategy_average()    
+play_game()
     
 #print(words)
