@@ -1,26 +1,28 @@
 number_of_letters = 5
-words = []
-tried_words = []
-original_words = []
+#words = []
+#tried_words = []
 
-def filter_green(letter, position):
-    for word in words:
+def filter_green(letter, position, word_list):
+    for word in word_list:
         if word[position] != letter:
-            words.remove(word)
+            word_list.remove(word)
+    return word_list
             
-def filter_yellow(letter, position):
-    for word in words:
+def filter_yellow(letter, position, word_list):
+    for word in word_list:
         if (word[position]) == letter:
-            words.remove(word)
+            word_list.remove(word)
         if (letter not in word):
-            words.remove(word)
+            word_list.remove(word)
+    return word_list
 
-def filter_black(letter, amount = 1):
-    for word in words:
+def filter_black(letter, amount, word_list):
+    for word in word_list:
         if word.count(letter) >= amount:
-            words.remove(word)
+            word_list.remove(word)
+    return word_list
             
-def filter_words(word, pattern):
+def filter_words(word, pattern, word_list):
     if len(word) != 5:
         print('word more than 5 letters')
         return
@@ -28,33 +30,35 @@ def filter_words(word, pattern):
         print('pattern more than 5 letters')
         return
     listlen = 0
-    while listlen != len(words): # array.remove is buggy
-        listlen = len(words)
+    while listlen != len(word_list): # array.remove is buggy
+        listlen = len(word_list)
         for position in range(5):
             if pattern[position] == 'g':
-                filter_green(word[position], position)
+                filter_green(word[position], position, word_list)
             elif pattern[position] == 'y':
-                filter_yellow(word[position], position)
+                filter_yellow(word[position], position, word_list)
             elif pattern[position] == 'b':
                 count = 1
                 for pos in range(5):
                     if word[pos] == word[position] and pattern[pos] in "gy":
                         count = count + 1
-                filter_black(word[position], count)
+                filter_black(word[position], count, word_list)
             else:
                 print('pattern character not g, y or b')
                 return
 
 def build_word_list():
+    word_list = []
     file = open('wordlist', 'r')
     for line in file:
-        words.append(line[:5])
+        word_list.append(line[:5])
     file.close()
+    return word_list
     
-def find_most_likely_word():
-    if len(words) <= 2:
-        return words[0] 
-    dictionary = build_dictionary()
+def find_most_likely_word(word_list, full_word_list):
+    if len(word_list) <= 2:
+        return word_list[0] 
+    dictionary = build_dictionary(word_list)
     empties = []
     biggest = -1
     biggest_num = 0
@@ -69,14 +73,10 @@ def find_most_likely_word():
     for empty in empties:
         dictionary[empty] = dictionary[biggest]
     
-    word = words[0]
+    word = word_list[0]
     word_score = 0
-    test_words = original_words.copy()
-    while len(test_words) > 0:
-        test_word = test_words[0]
-        if test_word in tried_words:
-            test_words.remove(test_word)
-            continue
+    while len(full_word_list) > 0:
+        test_word = full_word_list[0]
         score = 0
         for pos in range(number_of_letters):
             if test_word[pos] in dictionary[pos]:
@@ -88,15 +88,15 @@ def find_most_likely_word():
         if score > word_score:
             word = test_word
             word_score = score
-        test_words.remove(test_word)
+        full_word_list.remove(test_word)
+    print(word_score)
     return word
     
            
    #print (dictionary())
    #return words[0]
 
-def build_dictionary():
-    word_list = words.copy()
+def build_dictionary(word_list):
     dictionary = []
     for pos in range(number_of_letters):
         dictionary.append({})
@@ -127,22 +127,21 @@ def get_pattern(test_word, actual_word):
                         exclusion_list.append(posi)
     return ''.join(pattern)
 
+original_words = []
+
 def calculate_strategy_average():
     guess_count = 0
     word_count = 0
-    build_word_list()
-    original_words = words.copy()
-    for word in original_words:
-    #for word in ["mimer"]:
-        tried_words = []
+    for word in build_word_list:
+        word_list = build_word_list()
+        full_word_list = word_list.copy()
         print("Actual Word : " + word)
         word_count = word_count + 1
         guesses = 0
-        build_word_list()
         pattern = ''
         while pattern != 'ggggg':
             word_to_test = find_most_likely_word()
-            tried_words.append(word_to_test)
+            full_word_list.remove(word_to_test)
             #print("Word to test : " + word_to_test)
             guesses = guesses + 1
             pattern = get_pattern(word_to_test, word)
@@ -155,20 +154,32 @@ def calculate_strategy_average():
     print("Average guesses : " + str(guess_count/word_count))
     
 def play_game():
-    build_word_list()
-    original_words = words.copy()
+    word_list = build_word_list()
+    full_word_list = word_list.copy()
     while True:
-        print("Best word choice : " + find_most_likely_word())
+        best_word = find_most_likely_word(word_list, full_word_list)
+        print("Best word choice : " + best_word)
         word = input("Chosen Word : ")
         if word == "exit":
             break
-        tried_words.append(word)
+        elif word == "":
+            word = best_word
+        if (word in full_word_list):
+            full_word_list.remove(word)
+        else:
+            print("given word not in word list")
+            continue
         pattern = input("Pattern (gyb) : ")
         filter_words(word, pattern)
+        
+def find_first_word():
+    word_list = build_word_list()
+    print(find_most_likely_word(word_list, word_list))
             
 
 
 #calculate_strategy_average()    
-play_game()
+#play_game()
+find_first_word()
     
 #print(words)
